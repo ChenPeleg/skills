@@ -34,28 +34,28 @@ A very large page or form is read top to bottom, and so is its file list. Name t
 How to apply it:
 
 1. List the page's sections in the order they are rendered, top to bottom.
-2. Choose a segment name for each section so that the names sort in that same order. Usually there are several accurate names for a section (`Summary`, `Sikum`, `Closing`), so pick the one that lands in the right place.
-3. Children inherit the position automatically, because they start with their section's name: everything under `MetaData` stays grouped with it, ahead of everything under `Objectives`.
+2. Choose a segment name for each section so that the names sort in that same order. Usually there are several accurate names for a section (`Summary`, `Recap`, `Closing`), so pick the one that lands in the right place.
+3. Children inherit the position automatically, because they start with their section's name: everything under `Basics` stays grouped with it, ahead of everything under `Ingredients`.
 4. Parts that are not a section of the page (bottom bar, dialogs, utilities) get their own segments such as `View` or `Utils`, which keeps them out of the section sequence.
 5. When adding a new section later, pick a name that sorts into its place on the page rather than renaming the existing sections.
 
 Do not force it with an inaccurate name: if no accurate name sorts correctly, keep the accurate name and either accept the section being out of order or, for long forms, use an explicit order marker (see "Order markers" below).
 
-Example: the sections of the `modular-activity-edit` form sort in the same order they appear in the form:
+Example: the sections of a `recipe-edit` form sort in the same order they appear in the form:
 
 ```
-ModularActivityFormMetaData.tsx                         1. metadata
-ModularActivityFormMetaDataBrief.tsx                       (child of metadata)
-ModularActivityFormMetaDataTopical.tsx                     (child of metadata)
-ModularActivityFormObjectives.tsx                       2. objectives
-ModularActivityFormObjectivesCompassCombobox.tsx           (child of objectives)
-ModularActivityFormObjectivesConceptsCombobox.tsx          (child of objectives)
-ModularActivityFormPrimaryContent.tsx                   3. primary content
-ModularActivityFormPrimaryContentOpeningGame.tsx           (child of primary content)
-ModularActivityFormResources.tsx                        4. resources
-ModularActivityFormSikum.tsx                            5. summary
-ModularActivityFormUtilsValidateMetaData.tsx            not a page section
-ModularActivityFormViewBottomBar.tsx                    not a page section
+RecipeFormBasics.tsx                         1. basics
+RecipeFormBasicsTags.tsx                        (child of basics)
+RecipeFormBasicsTitle.tsx                       (child of basics)
+RecipeFormIngredients.tsx                    2. ingredients
+RecipeFormIngredientsItemCombobox.tsx           (child of ingredients)
+RecipeFormIngredientsUnitCombobox.tsx           (child of ingredients)
+RecipeFormMethod.tsx                         3. method
+RecipeFormMethodStep.tsx                        (child of method)
+RecipeFormNotes.tsx                          4. notes
+RecipeFormSummary.tsx                        5. summary
+RecipeFormUtilsValidateBasics.ts             not a page section
+RecipeFormViewBottomBar.tsx                  not a page section
 ```
 
 ### Order markers (numbers or letters)
@@ -73,90 +73,90 @@ Example with numbers, a 13-section event form:
 form/
   EventForm.tsx
   EventFormMain.tsx
-  EventFormMainHeder.tsx
+  EventFormMainHeader.tsx
   EventFormMainSections.tsx
   Section01GeneralInfo.tsx
-  Section02EventTypeData.tsx
-  Section03Commander.tsx
-  Section04OperationalRear.tsx
-  Section05AdditionalRoles.tsx
-  Section06Pioneer.tsx
+  Section02EventType.tsx
+  Section03Organizer.tsx
+  Section04Staff.tsx
+  Section05Schedule.tsx
+  Section06Venue.tsx
   Section07Activities.tsx
   Section08Accommodation.tsx
-  Section09TripApproval.tsx
-  Section10Transport.tsx
+  Section09Transport.tsx
+  Section10Catering.tsx
   Section11Medical.tsx
   Section12Security.tsx
-  Section13FoodSupplier.tsx
+  Section13Budget.tsx
 ```
 
 (In new code keep the feature prefix on the sections as well: `EventFormSection01GeneralInfo.tsx`.)
 
-Example with letters, a six-step purchase form:
+Example with letters, a six-step checkout form:
 
 ```
-purchase/
-  PurchaseMain.tsx
-  PurchaseMainFinish.tsx
-  PurchaseMainFinishSummaryRow.tsx
-  PurchaseMainForm.tsx
-  PurchaseMainFormUtilNextBack.tsx
-  PurchaseMainPreview.tsx
-  PurchaseSection.tsx
-  PurchaseSectionAOccasion.tsx
-  PurchaseSectionBSum.tsx
-  PurchaseSectionCReceiver.tsx
-  PurchaseSectionDHow.tsx
-  PurchaseSectionEWhen.tsx
-  PurchaseSectionFWhat.tsx
-  PurchaseSectionHeader.tsx
-  PurchaseSectionMainFormBox.tsx
+checkout/
+  CheckoutMain.tsx
+  CheckoutMainFinish.tsx
+  CheckoutMainFinishSummaryRow.tsx
+  CheckoutMainForm.tsx
+  CheckoutMainFormUtilNextBack.tsx
+  CheckoutMainPreview.tsx
+  CheckoutSection.tsx
+  CheckoutSectionACart.tsx
+  CheckoutSectionBAddress.tsx
+  CheckoutSectionCDelivery.tsx
+  CheckoutSectionDPayment.tsx
+  CheckoutSectionEGiftNote.tsx
+  CheckoutSectionFReview.tsx
+  CheckoutSectionHeader.tsx
+  CheckoutSectionMainFormBox.tsx
 ```
 
 Use markers only for this case. A feature whose sections already sort naturally, or that has only a few sections, does not need them.
 
 ## Casing
 
-Both kebab-case (`modular-activity-main-body.tsx`) and PascalCase (`ModularActivityFormMetaData.tsx`) are accepted.
+Both kebab-case (`recipe-main-body.tsx`) and PascalCase (`RecipeFormBasics.tsx`) are accepted.
 
 - **Greenfield project or feature**: use kebab-case.
 - **Existing folder**: match the casing already used there. Do not mix casings inside one feature folder, and do not recase files unless asked.
 
-The exported component is PascalCase in both cases and mirrors the file name (`modular-activity-main-body.tsx` exports `ModularActivityMainBody`).
+The exported component is PascalCase in both cases and mirrors the file name (`recipe-main-body.tsx` exports `RecipeMainBody`).
 
 ## Example
 
 ```
-modular-activity/
-  modular-activity-page.tsx
-  modular-activity-main.tsx
-  modular-activity-main-body.tsx
-  modular-activity-main-body-header.tsx
-  modular-activity-main-body-header-buttons.tsx
-  modular-activity-main-body-goals.tsx
-  modular-activity-main-body-goals-compass-main-message.tsx
-  modular-activity-main-body-summary.tsx
-  modular-activity-method-view.tsx
-  modular-activity-method-view-content.tsx
-  modular-activity-method-view-modal.tsx
-  modular-activity-sidebar.tsx
-  modular-activity-star-icon.tsx
+recipe/
+  recipe-page.tsx
+  recipe-main.tsx
+  recipe-main-body.tsx
+  recipe-main-body-header.tsx
+  recipe-main-body-header-buttons.tsx
+  recipe-main-body-ingredients.tsx
+  recipe-main-body-ingredients-unit-toggle.tsx
+  recipe-main-body-summary.tsx
+  recipe-step-view.tsx
+  recipe-step-view-content.tsx
+  recipe-step-view-modal.tsx
+  recipe-sidebar.tsx
+  recipe-star-icon.tsx
   models/
 ```
 
-`modular-activity-main-body-header-buttons.tsx` is rendered by `...-header`, which is rendered by `...-body`, which is rendered by `...-main`.
+`recipe-main-body-header-buttons.tsx` is rendered by `...-header`, which is rendered by `...-body`, which is rendered by `...-main`.
 
 PascalCase equivalent with a sub-folder for a large section:
 
 ```
-modular-activity-edit/
-  ModularActivityForm.tsx
-  ModularActivityFormMetaData.tsx
-  ModularActivityFormMetaDataBrief.tsx
-  ModularActivityFormMetaDataTopical.tsx
-  ModularActivityMethodUnit/
-    ModularActivityMethodUnitForm.tsx
-    ModularActivityMethodUnitModal.tsx
+recipe-edit/
+  RecipeForm.tsx
+  RecipeFormBasics.tsx
+  RecipeFormBasicsTags.tsx
+  RecipeFormBasicsTitle.tsx
+  RecipeStep/
+    RecipeStepForm.tsx
+    RecipeStepModal.tsx
 ```
 
 ## Refactoring an existing feature
