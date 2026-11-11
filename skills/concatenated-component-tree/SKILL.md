@@ -1,6 +1,7 @@
 ---
 name: concatenated-component-tree
 description: Structure a complex feature's components as a flat folder where every file name is its parent's name plus one section segment (`<feature>-<section>-<sub-section>.tsx`), so the file list reads as the component tree. Use when creating, splitting, or renaming components in a feature with many nested sub-components, both in new projects and when refactoring existing ones.
+license: MIT
 ---
 
 # Concatenated component tree

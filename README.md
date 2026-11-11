@@ -23,3 +23,7 @@ Or copy a skill's folder into your project's `.claude/skills/` directory (or `~/
 ```bash
 cp -r skills/concatenated-component-tree ~/.claude/skills/
 ```
+
+## License
+
+[MIT](LICENSE)
