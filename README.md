@@ -10,9 +10,15 @@ Each skill lives in its own folder under [`skills/`](skills) as a `SKILL.md` fil
 | --- | --- |
 | [concatenated-component-tree](skills/concatenated-component-tree/SKILL.md) | Structures a complex feature's components as a flat folder where each file name is its parent's name plus one segment, so the file list reads as the component tree. |
 
-## Usage
+## Install
 
-Copy a skill's folder into your project's `.claude/skills/` directory (or `~/.claude/skills/` to use it everywhere):
+With the [GitHub CLI](https://cli.github.com) (v2.90.0 or later):
+
+```bash
+gh skill install ChenPeleg/skills concatenated-component-tree
+```
+
+Or copy a skill's folder into your project's `.claude/skills/` directory (or `~/.claude/skills/` to use it everywhere):
 
 ```bash
 cp -r skills/concatenated-component-tree ~/.claude/skills/

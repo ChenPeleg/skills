@@ -1,0 +1,53 @@
+name: Publish skills
+
+# Publishes the skills in this repo with `gh skill publish`, which validates
+# them against the Agent Skills spec and creates a GitHub release.
+#
+# Run it either by pushing a version tag (git tag v1.0.0 && git push origin v1.0.0)
+# or from the Actions tab with "Run workflow" and a version.
+#
+# Pull requests only get the validation step (--dry-run); nothing is published.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to publish, e.g. v1.0.0"
+        required: true
+        type: string
+  pull_request:
+    paths:
+      - "skills/**"
+      - ".github/workflows/publish-skills.yml"
+
+jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate skills
+        run: |
+          gh --version
+          gh skill publish --dry-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  publish:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish skills
+        run: |
+          gh --version
+          gh skill publish --tag "$VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version || github.ref_name }}
