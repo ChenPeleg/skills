@@ -9,6 +9,7 @@ Each skill lives in its own folder under [`skills/`](skills) as a `SKILL.md` fil
 | Skill | What it does |
 | --- | --- |
 | [concatenated-component-tree](skills/concatenated-component-tree/SKILL.md) | Structures a complex feature's components as a flat folder where each file name is its parent's name plus one segment, so the file list reads as the component tree. |
+| [where-to-put-skills](skills/where-to-put-skills/SKILL.md) | Sets up one shared place for a repo's agent skills (`.agents/skills/`), listed in `AGENTS.md`, with pointer files for Claude Code and a line for Copilot, so every agent reads the same files. |
 
 ## Install
 
