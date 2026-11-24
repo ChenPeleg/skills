@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Claude Code status line (lean, one line):
-//   Opus 5.5 · ⎇ main · ◔ 22% · ◕ 79% ↻19h
+//   Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h
 // Circles show 5h then 7d usage; percentages colored green/yellow/red.
 // Reset time (dim) appears only once a window is >= 50% used.
 const { execFileSync } = require("child_process");

@@ -1,0 +1,132 @@
+---
+name: claude-code-lean-statusline
+description: Set up a lean, one-line Claude Code status line on Windows (model · git branch · context · 5h/7d usage as pie icons, reset time only when it matters), including installing a Nerd Font for icons. Use when the user wants to create, shorten, restyle or add icons to the Claude Code status line (bottom line), install Nerd Fonts, or asks what the status line can and cannot show.
+license: MIT
+---
+
+# Lean Claude Code status line
+
+A one-line status line that shows only what matters, using icons in place of labels:
+
+```
+Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h
+```
+
+Compared with a typical default (~75 columns):
+
+```
+Opus 5.5 | main | $0.00 | 5h 22% (resets 2h50m) | 7d 79% (resets 19h10m)
+```
+
+## What's in this skill
+
+| Path | What it is |
+| --- | --- |
+| `scripts/statusline.js` | The status line script (Node, no dependencies). |
+| `fonts/` | CaskaydiaCove Nerd Font **Mono**: Regular, Bold, Italic, BoldItalic (Nerd Fonts v3.5.1), plus its `LICENSE` (SIL OFL) and `README.md`. |
+
+## Install
+
+1. **Copy the script** to `~/.claude/statusline.js` (on Windows: `C:\Users\<you>\.claude\statusline.js`). Back up the old one first if there is one.
+2. **Point Claude Code at it** in `~/.claude/settings.json`:
+   ```json
+   "statusLine": {
+     "type": "command",
+     "command": "node \"C:/Users/<you>/.claude/statusline.js\"",
+     "refreshInterval": 60
+   }
+   ```
+3. **Install the Nerd Font** (needed only for the branch icon; see [Fonts](#fonts)).
+4. **Test** without opening Claude Code by piping sample JSON into it:
+   ```sh
+   now=$(date +%s)
+   echo "{\"model\":{\"display_name\":\"Opus 5.5\"},\"cwd\":\".\",\"context_window\":{\"used_percentage\":34},\"rate_limits\":{\"five_hour\":{\"used_percentage\":22,\"resets_at\":$((now+10200))},\"seven_day\":{\"used_percentage\":79,\"resets_at\":$((now+69000))}}}" \
+     | node ~/.claude/statusline.js
+   ```
+   Also try `{}` and invalid input: the script must print nothing and not crash.
+5. The new line shows up in Claude Code within `refreshInterval` seconds or on the next message.
+
+## How the line is built
+
+Sections are joined by a dim ` · `. Each section appears only when Claude Code sends its data.
+
+| Section | Example | Source in stdin JSON | Notes |
+| --- | --- | --- | --- |
+| Model | `Opus 5.5` | `model.display_name` | |
+| Branch | ` main` | `git rev-parse` in `workspace.current_dir` / `cwd` | Nerd Font icon `\ue0a0`. Names over 16 chars are cut with `…`. |
+| Context | `▤ 34%` | `context_window.used_percentage` | Not always sent; hidden when missing. |
+| 5h usage | `◔ 22%` | `rate_limits.five_hour` | First circle is always 5h. |
+| 7d usage | `◕ 79% ↻19h` | `rate_limits.seven_day` | Second circle is always 7d. |
+
+Rules:
+
+- **Pie icon** for usage: `○` < 13%, `◔` < 38%, `◑` < 63%, `◕` < 88%, `●` ≥ 88%. Icons use the normal text color, followed by a space.
+- **Percentage color**: green < 50%, yellow ≥ 50%, red ≥ 80%.
+- **Reset time** (dim, after `↻`) only once a window is ≥ 50% used: `45m`, `2h50` (under 10h), `19h`, `3d`.
+- **No cost**: it was removed on purpose (always `$0.00` on subscription plans).
+- **Exactly one line**: newlines are stripped; every color is closed with `\x1b[0m`.
+- **Never crash**: bad input prints nothing.
+
+## What the status line can and can't do
+
+- **The second line is not yours.** The row below, e.g. `⏵⏵ auto mode on (shift+tab to cycle)`, is Claude Code's built-in permission-mode indicator. The docs say the status line "renders in its own row above the built-in footer badges and doesn't replace them". There's no documented setting to hide it or write into it. (`hideVimModeIndicator` only hides vim's `-- INSERT --`.) A custom status line does remove `? for shortcuts` and the voice hint.
+- **More rows are possible**: each line the script prints becomes its own row above the mode line. This skill keeps it to one.
+- **Font size can't be changed** from the script; the terminal sets it. To make secondary info look smaller, use ANSI dim (`\x1b[2m`). Superscript/subscript digits (`²²`, `₁₉ₕ`) also work but look different from font to font.
+- **No SVG or images.** The status line is text and ANSI color only. Drawing is done with Unicode:
+  - bars `▁▂▃▄▅▆▇█`, pies `○◔◑◕●`, shades `░▒▓█`, braille `⣀⣤⣶⣿` (tiny sparklines), box lines `─│╭╮`
+  - truecolor (`\x1b[38;2;R;G;Bm`) progress bars like `▕████░░░░▏`
+  - emoji (`⏳ 🟢`) are two columns wide and render differently across fonts; avoid them for alignment.
+  - Terminal image protocols (Sixel etc.) aren't usable: Claude Code draws its own screen, and the line is one row tall.
+
+## Fonts
+
+### Why a Nerd Font
+
+Nerd Fonts is not a single font but a set of icons (git, folders, pie-progress, logos) merged into many coding fonts (Cascadia, JetBrains Mono, Fira Code…). The icons sit in Unicode's **Private Use Area**, so:
+
+- a normal font has nothing there → empty boxes, and the terminal can't borrow them from another font;
+- icon fonts like Font Awesome have the shapes but aren't fixed-width, so they get cut off or overlap in a terminal.
+
+Standard Unicode symbols (`▤ ◔ ◕ ↻ ⎇`) don't need a Nerd Font: Windows falls back to Segoe UI Symbol. Only the branch icon `` in this line needs it. Without the font, change `\ue0a0` back to `⎇` in the script.
+
+### Which files
+
+A Nerd Font zip has three families × many weights:
+
+- `…NerdFont-…`: icons a bit wider than one cell
+- **`…NerdFontMono-…`: icons exactly one cell — use this in terminals**
+- `…NerdFontPropo-…`: proportional, for normal apps
+
+Only **Mono Regular, Bold, Italic, BoldItalic** are needed (that's what's in `fonts/`). Light/Thin/SemiBold aren't used by terminals.
+
+### Install on Windows
+
+1. Select the four `.ttf` files in `fonts/` → right-click → **Install** (or **Install for all users**).
+   Other sources: [nerdfonts.com/font-downloads](https://www.nerdfonts.com/font-downloads); Microsoft's own `CascadiaCodeNF`/`CascadiaMonoNF` in [cascadia-code releases](https://github.com/microsoft/cascadia-code/releases); `scoop bucket add nerd-fonts` + `scoop install CascadiaCode-NF`; `oh-my-posh font install`.
+2. Set the font where Claude Code runs, then restart the terminal:
+   - **Windows Terminal**: Settings → profile → Appearance → Font face → *CaskaydiaCove Nerd Font Mono*. Alternatively keep your font and add a fallback: `"Cascadia Mono, Symbols Nerd Font Mono"` (needs the icons-only "Symbols Nerd Font Mono").
+   - **JetBrains IDEs (WebStorm etc.)**: Settings → Editor → Color Scheme → Console Font → enable "Use console font instead of the default" → pick the font.
+3. Check: `Write-Output "`u{e0a0}"` in PowerShell should print a branch icon, not a box.
+4. Remove unused weights under Settings → Personalization → Fonts.
+
+## Alternative styles
+
+All of these use the same data; only the formatting changes in `limit()` and `build()`.
+
+| Style | Example | Width | Font risk |
+| --- | --- | ---: | --- |
+| Compact text | `Opus 5.5 main 5h22%·2h50 7d79%·19h` | ~35 | none |
+| Bars + color | `Opus 5.5 ⎇main ▂22% ▆79%·19h` | ~30 | low |
+| Ultra-minimal | `O5.5 main ▂▆` (numbers only at ≥ 70%) | ~12 | low |
+| **Pies (this skill)** | `Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h` | ~45 | low (needs Nerd Font for the branch icon) |
+| Pies + superscript | `Opus 5.5 main ◔²²%₂ₕ₅₀ ◕⁷⁹%₁₉ₕ` | ~30 | medium |
+| Full Nerd Font | `󰚩 O5.5  main 󰪟 22% 󰪤 79%` (8-step pies `󰪞`…`󰪥`) | ~30 | high without the font |
+
+Bar mapping (eighths): `▁` 0–12%, `▂` –25, `▃` –37, `▄` –50, `▅` –62, `▆` –75, `▇` –87, `█` above that.
+
+## Troubleshooting
+
+- **Box or `?` instead of ``**: the terminal isn't using the Nerd Font, or the Mono Regular style isn't installed.
+- **Line wraps**: shorten the branch limit or drop the context section; keep the line under ~45 columns.
+- **Nothing shows**: run the test command from step 4; check the path in `settings.json` (use forward slashes on Windows).
+- **Context section never appears**: Claude Code isn't sending `context_window`; that's expected for some versions.
