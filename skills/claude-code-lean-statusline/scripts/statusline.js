@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Claude Code status line (lean, one line):
-//   Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h
+//   Opus 5.5 · <branch> main · ▤ 34% · <pie> 22% · <pie> 79% ↻19h  (icons from a Nerd Font)
 // Circles show 5h then 7d usage; percentages colored green/yellow/red.
 // Reset time (dim) appears only once a window is >= 50% used.
 const { execFileSync } = require("child_process");
@@ -27,12 +27,11 @@ function num(v) {
   return typeof v === "number" && isFinite(v) ? v : null;
 }
 
+// Nerd Font pies: empty circle, then 8 slices (1/8 steps)
+const PIES = ["󰝦", "󰪞", "󰪟", "󰪠", "󰪡", "󰪢", "󰪣", "󰪤", "󰪥"];
 function pie(p) {
-  if (p < 13) return "○";
-  if (p < 38) return "◔";
-  if (p < 63) return "◑";
-  if (p < 88) return "◕";
-  return "●";
+  const i = Math.round(Math.min(Math.max(p, 0), 100) / 12.5);
+  return PIES[i];
 }
 
 function color(p) {
@@ -95,7 +94,7 @@ function build(text) {
 
   const dir = (d.workspace && d.workspace.current_dir) || d.cwd;
   const b = dir ? branch(dir) : "";
-  if (b) parts.push(` ${b}`); // Nerd Font git-branch icon (test drive); was ⎇
+  if (b) parts.push(` ${b}`); // Nerd Font oct-git_branch
 
   const ctx = d.context_window && num(d.context_window.used_percentage);
   if (ctx !== null && ctx !== undefined) parts.push(`▤ ${Math.round(ctx)}%`);

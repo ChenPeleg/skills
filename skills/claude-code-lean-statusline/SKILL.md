@@ -9,8 +9,10 @@ license: MIT
 A one-line status line that shows only what matters, using icons in place of labels:
 
 ```
-Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h
+Opus 5.5 ·  main · ▤ 34% · 󰪟 22% · 󰪣 79% ↻19h
 ```
+
+The branch and pie icons come from a Nerd Font; see `nerd-font-icons.png` for how they look.
 
 Compared with a typical default (~75 columns):
 
@@ -23,6 +25,7 @@ Opus 5.5 | main | $0.00 | 5h 22% (resets 2h50m) | 7d 79% (resets 19h10m)
 | Path | What it is |
 | --- | --- |
 | `scripts/statusline.js` | The status line script (Node, no dependencies). |
+| `nerd-font-icons.png` | Picture of useful Nerd Font icons (pies, time, computer) with their codes, drawn with the bundled font. |
 | `fonts/` | CaskaydiaCove Nerd Font **Mono**: Regular, Bold, Italic, BoldItalic (Nerd Fonts v3.5.1), plus its `LICENSE` (SIL OFL) and `README.md`. |
 
 ## Install
@@ -53,14 +56,14 @@ Sections are joined by a dim ` · `. Each section appears only when Claude Code 
 | Section | Example | Source in stdin JSON | Notes |
 | --- | --- | --- | --- |
 | Model | `Opus 5.5` | `model.display_name` | |
-| Branch | ` main` | `git rev-parse` in `workspace.current_dir` / `cwd` | Nerd Font icon `\ue0a0`. Names over 16 chars are cut with `…`. |
+| Branch | ` main` | `git rev-parse` in `workspace.current_dir` / `cwd` | Nerd Font `oct-git_branch` (U+F418). Names over 16 chars are cut with `…`. |
 | Context | `▤ 34%` | `context_window.used_percentage` | Not always sent; hidden when missing. |
-| 5h usage | `◔ 22%` | `rate_limits.five_hour` | First circle is always 5h. |
-| 7d usage | `◕ 79% ↻19h` | `rate_limits.seven_day` | Second circle is always 7d. |
+| 5h usage | `󰪟 22%` | `rate_limits.five_hour` | First circle is always 5h. |
+| 7d usage | `󰪣 79% ↻19h` | `rate_limits.seven_day` | Second circle is always 7d. |
 
 Rules:
 
-- **Pie icon** for usage: `○` < 13%, `◔` < 38%, `◑` < 63%, `◕` < 88%, `●` ≥ 88%. Icons use the normal text color, followed by a space.
+- **Pie icon** for usage: Nerd Font `circle_outline` (U+F0766) at 0%, then `circle_slice_1`…`circle_slice_8` (U+F0A9E–U+F0AA5), one slice per 12.5% (rounded). Icons use the normal text color, followed by a space. Without a Nerd Font, use the plain Unicode set `○◔◑◕●` instead.
 - **Percentage color**: green < 50%, yellow ≥ 50%, red ≥ 80%.
 - **Reset time** (dim, after `↻`) only once a window is ≥ 50% used: `45m`, `2h50` (under 10h), `19h`, `3d`.
 - **No cost**: it was removed on purpose (always `$0.00` on subscription plans).
@@ -87,7 +90,7 @@ Nerd Fonts is not a single font but a set of icons (git, folders, pie-progress, 
 - a normal font has nothing there → empty boxes, and the terminal can't borrow them from another font;
 - icon fonts like Font Awesome have the shapes but aren't fixed-width, so they get cut off or overlap in a terminal.
 
-Standard Unicode symbols (`▤ ◔ ◕ ↻ ⎇`) don't need a Nerd Font: Windows falls back to Segoe UI Symbol. Only the branch icon `` in this line needs it. Without the font, change `\ue0a0` back to `⎇` in the script.
+Standard Unicode symbols (`▤ ↻ ⎇ ○◔◑◕●`) don't need a Nerd Font: Windows falls back to Segoe UI Symbol. The branch and pie icons in this line do need it. Without the font, switch them back to `⎇` and `○◔◑◕●` in the script.
 
 ### Which files
 
@@ -118,7 +121,8 @@ All of these use the same data; only the formatting changes in `limit()` and `bu
 | Compact text | `Opus 5.5 main 5h22%·2h50 7d79%·19h` | ~35 | none |
 | Bars + color | `Opus 5.5 ⎇main ▂22% ▆79%·19h` | ~30 | low |
 | Ultra-minimal | `O5.5 main ▂▆` (numbers only at ≥ 70%) | ~12 | low |
-| **Pies (this skill)** | `Opus 5.5 ·  main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h` | ~45 | low (needs Nerd Font for the branch icon) |
+| Unicode pies | `Opus 5.5 · ⎇ main · ▤ 34% · ◔ 22% · ◕ 79% ↻19h` | ~45 | low |
+| **Nerd Font pies (this skill)** | `Opus 5.5 ·  main · ▤ 34% · 󰪟 22% · 󰪣 79% ↻19h` | ~45 | needs the Nerd Font |
 | Pies + superscript | `Opus 5.5 main ◔²²%₂ₕ₅₀ ◕⁷⁹%₁₉ₕ` | ~30 | medium |
 | Full Nerd Font | `󰚩 O5.5  main 󰪟 22% 󰪤 79%` (8-step pies `󰪞`…`󰪥`) | ~30 | high without the font |
 
@@ -126,7 +130,7 @@ Bar mapping (eighths): `▁` 0–12%, `▂` –25, `▃` –37, `▄` –50, `�
 
 ## Troubleshooting
 
-- **Box or `?` instead of ``**: the terminal isn't using the Nerd Font, or the Mono Regular style isn't installed.
+- **Boxes or `?` instead of the branch/pie icons**: the terminal isn't using the Nerd Font, or the Mono Regular style isn't installed.
 - **Line wraps**: shorten the branch limit or drop the context section; keep the line under ~45 columns.
 - **Nothing shows**: run the test command from step 4; check the path in `settings.json` (use forward slashes on Windows).
 - **Context section never appears**: Claude Code isn't sending `context_window`; that's expected for some versions.
