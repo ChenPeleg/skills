@@ -109,6 +109,7 @@ Only **Mono Regular, Bold, Italic, BoldItalic** are needed (that's what's in `fo
 2. Set the font where Claude Code runs, then restart the terminal:
    - **Windows Terminal**: Settings → profile → Appearance → Font face → *CaskaydiaCove Nerd Font Mono*. Alternatively keep your font and add a fallback: `"Cascadia Mono, Symbols Nerd Font Mono"` (needs the icons-only "Symbols Nerd Font Mono").
    - **JetBrains IDEs (WebStorm etc.)**: Settings → Editor → Color Scheme → Console Font → enable "Use console font instead of the default" → pick the font.
+   - Or edit Windows Terminal's `settings.json` (`%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json`) to set it for every profile: `"profiles": { "defaults": { "font": { "face": "CaskaydiaCove Nerd Font Mono" } } }`. Windows Terminal applies it right away.
 3. Check: `Write-Output "`u{e0a0}"` in PowerShell should print a branch icon, not a box.
 4. Remove unused weights under Settings → Personalization → Fonts.
 
@@ -130,7 +131,7 @@ Bar mapping (eighths): `▁` 0–12%, `▂` –25, `▃` –37, `▄` –50, `�
 
 ## Troubleshooting
 
-- **Boxes or `?` instead of the branch/pie icons**: the terminal isn't using the Nerd Font, or the Mono Regular style isn't installed.
+- **Boxes or `?` instead of the branch/pie icons**: the terminal isn't using the Nerd Font. Don't test with U+E0A0 (powerline branch): plain Cascadia has it too, so it shows even without the Nerd Font. Test with U+F418 or a pie (U+F0A9F). Also check that the Mono Regular style is installed.
 - **Line wraps**: shorten the branch limit or drop the context section; keep the line under ~45 columns.
 - **Nothing shows**: run the test command from step 4; check the path in `settings.json` (use forward slashes on Windows).
 - **Context section never appears**: Claude Code isn't sending `context_window`; that's expected for some versions.
