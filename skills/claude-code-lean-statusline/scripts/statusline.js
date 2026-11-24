@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Claude Code status line (lean, one line):
-//   Opus 5.5 · <branch> main · ▤ 34% · <pie> 22% · <pie> 79% ↻19h  (icons from a Nerd Font)
+//   Opus 5.5 · <branch> main · ▤ 34% · <pie> 55% <timer> 1h37 · <pie> 84% <calendar> Tue 25/11  (icons from a Nerd Font)
 // Circles show 5h then 7d usage; percentages colored green/yellow/red.
-// Reset time (dim) appears only once a window is >= 50% used.
+// 5h: time left (dim) once >= 50% used. 7d: reset date (dim), always.
 const { execFileSync } = require("child_process");
 
 const ESC = "\x1b[";
@@ -54,15 +54,32 @@ function resetText(epochSec) {
   return `${Math.floor(h / 24)}d`;
 }
 
-function limit(w) {
+const TIMER = "󰔟"; // Nerd Font md-timer_sand: time until reset
+const CAL = "󰃭"; // Nerd Font md-calendar: reset date
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Reset date: Thu 27/11
+function resetDate(epochSec) {
+  const t = num(epochSec);
+  if (t === null) return "";
+  const d = new Date(t * 1000);
+  return `${DAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
+}
+
+// opts.date: always show the reset date (weekly); otherwise show the
+// time left, only once the window is >= 50% used (5h).
+function limit(w, opts = {}) {
   if (!w) return null;
   const p = num(w.used_percentage);
   if (p === null) return null;
   const pct = Math.round(p);
   let s = `${pie(pct)} ${color(pct)}${pct}%${RESET}`;
-  if (pct >= 50) {
+  if (opts.date) {
+    const dt = resetDate(w.resets_at);
+    if (dt) s += ` ${DIM}${CAL} ${dt}${RESET}`;
+  } else if (pct >= 50) {
     const r = resetText(w.resets_at);
-    if (r) s += ` ${DIM}↻${r}${RESET}`;
+    if (r) s += ` ${DIM}${TIMER} ${r}${RESET}`;
   }
   return s;
 }
@@ -101,7 +118,7 @@ function build(text) {
 
   const rl = d.rate_limits || {};
   const five = limit(rl.five_hour);
-  const week = limit(rl.seven_day);
+  const week = limit(rl.seven_day, { date: true });
   if (five) parts.push(five);
   if (week) parts.push(week);
 
