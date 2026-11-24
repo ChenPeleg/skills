@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 // Claude Code status line (lean, one line):
 //   Opus 5.5 · <branch> main · ▤ 34% · <pie> 55% <timer> 1h37 · <pie> 84% <calendar> Tue 25/11  (icons from a Nerd Font)
-// Circles show 5h then 7d usage; percentages colored green/yellow/red.
+// Circles show 5h then 7d usage; percentages in a calm gray-blue, red at >= 90%.
 // 5h: time left (dim) once >= 50% used. 7d: reset date (dim), always.
 const { execFileSync } = require("child_process");
 
 const ESC = "\x1b[";
 const RESET = ESC + "0m";
 const DIM = ESC + "2m";
-const GREEN = ESC + "32m";
-const YELLOW = ESC + "33m";
+const CALM = ESC + "38;2;125;140;155m"; // muted slate gray-blue
 const RED = ESC + "31m";
 
 let raw = "";
@@ -34,10 +33,9 @@ function pie(p) {
   return PIES[i];
 }
 
+// Percentages stay calm until a window reaches 90%, then turn red.
 function color(p) {
-  if (p >= 80) return RED;
-  if (p >= 50) return YELLOW;
-  return GREEN;
+  return p >= 90 ? RED : CALM;
 }
 
 // Short reset text: 45m, 2h50 (under 10h), 19h, 3d
