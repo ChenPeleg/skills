@@ -1,6 +1,6 @@
 # Plan: lean, one-line Claude Code status line
 
-Status: **plan only — not implemented**
+Status: **implemented (2026-11-24)** — option B layout with pie circles (`○◔◑◕●`) instead of bars, no superscripts. Backup of the old script: `~/.claude/statusline.js.bak`.
 Target file: `~/.claude/statusline.js` (wired via `statusLine.command` in `~/.claude/settings.json`)
 
 ## Current state
