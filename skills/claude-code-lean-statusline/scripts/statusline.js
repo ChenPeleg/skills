@@ -64,8 +64,9 @@ function resetDate(epochSec) {
   return `${DAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
 }
 
-// opts.date: always show the reset date (weekly); otherwise show the
-// time left, only once the window is >= 50% used (5h).
+// opts.date: always show the reset date (weekly), plus the time left in
+// brackets when it resets within 24h; otherwise show the time left, only
+// once the window is >= 50% used (5h).
 function limit(w, opts = {}) {
   if (!w) return null;
   const p = num(w.used_percentage);
@@ -74,7 +75,12 @@ function limit(w, opts = {}) {
   let s = `${pie(pct)} ${color(pct)}${pct}%${RESET}`;
   if (opts.date) {
     const dt = resetDate(w.resets_at);
-    if (dt) s += ` ${DIM}${CAL} ${dt}${RESET}`;
+    if (dt) {
+      const t = num(w.resets_at);
+      const soon = t !== null && t * 1000 - Date.now() < 24 * 3600 * 1000;
+      const left = soon ? resetText(t) : "";
+      s += ` ${DIM}${CAL} ${dt}${left ? ` (${left})` : ""}${RESET}`;
+    }
   } else if (pct >= 50) {
     const r = resetText(w.resets_at);
     if (r) s += ` ${DIM}${TIMER} ${r}${RESET}`;

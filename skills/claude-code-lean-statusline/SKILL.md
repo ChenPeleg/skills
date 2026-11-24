@@ -66,7 +66,7 @@ Rules:
 - **Pie icon** for usage: Nerd Font `circle_outline` (U+F0766) at 0%, then `circle_slice_1`…`circle_slice_8` (U+F0A9E–U+F0AA5), one slice per 12.5% (rounded). Icons use the normal text color, followed by a space. Without a Nerd Font, use the plain Unicode set `○◔◑◕●` instead.
 - **Percentage color**: a calm, muted gray-blue (truecolor `38;2;125;140;155`) until a window reaches 90%, then red.
 - **5h reset**: time left, dim, after the Nerd Font timer `󰔟` (md-timer_sand, U+F051F) and a space, only once the window is ≥ 50% used: `45m`, `2h50` (under 10h), `19h`, `3d`.
-- **7d reset**: the reset date, always shown, dim, after the Nerd Font calendar `󰃭` (md-calendar, U+F00ED) and a space: `Wed 25/11` (weekday, day/month).
+- **7d reset**: the reset date, always shown, dim, after the Nerd Font calendar `󰃭` (md-calendar, U+F00ED) and a space: `Wed 25/11` (weekday, day/month). When the reset is less than 24 hours away, the time left is added in brackets: `Wed 25/11 (17h)`, `(1h37)`, `(30m)`.
 - **No cost**: it was removed on purpose (always `$0.00` on subscription plans).
 - **Exactly one line**: newlines are stripped; every color is closed with `\x1b[0m`.
 - **Never crash**: bad input prints nothing.
