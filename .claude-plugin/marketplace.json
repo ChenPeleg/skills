@@ -1,0 +1,11 @@
+{
+  "name": "chenpeleg-skills",
+  "owner": { "name": "Chen Peleg" },
+  "plugins": [
+    {
+      "name": "chen-skills",
+      "source": "./",
+      "description": "A small, hand-picked collection of agent skills: lean status line, concatenated component tree, where to put skills."
+    }
+  ]
+}
