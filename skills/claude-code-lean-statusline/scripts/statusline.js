@@ -82,17 +82,21 @@ function limit(w, opts = {}) {
   return s;
 }
 
-function branch(dir) {
+function git(dir, args) {
   try {
-    const b = execFileSync(
-      "git",
-      ["--no-optional-locks", "rev-parse", "--abbrev-ref", "HEAD"],
-      { cwd: dir || undefined, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000 }
-    ).trim();
-    return b.length > 16 ? b.slice(0, 16) + "…" : b;
+    return execFileSync("git", ["--no-optional-locks", ...args], {
+      cwd: dir || undefined, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000,
+    }).trim();
   } catch (e) {
     return "";
   }
+}
+
+function branch(dir) {
+  const b = git(dir, ["rev-parse", "--abbrev-ref", "HEAD"]);
+  if (!b) return "";
+  const shown = b.length > 16 ? b.slice(0, 16) + "…" : b;
+  return shown;
 }
 
 function build(text) {

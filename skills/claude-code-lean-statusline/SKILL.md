@@ -75,6 +75,7 @@ Rules:
 
 - **The second line is not yours.** The row below, e.g. `⏵⏵ auto mode on (shift+tab to cycle)`, is Claude Code's built-in permission-mode indicator. The docs say the status line "renders in its own row above the built-in footer badges and doesn't replace them". There's no documented setting to hide it or write into it. (`hideVimModeIndicator` only hides vim's `-- INSERT --`.) A custom status line does remove `? for shortcuts` and the voice hint.
 - **More rows are possible**: each line the script prints becomes its own row above the mode line. This skill keeps it to one.
+- **No buttons or links.** The status line can't send clicks back to Claude Code, so a click can't run a command. Clickable OSC 8 hyperlinks were tried on the branch name in the VS Code terminal and didn't work, so they were removed.
 - **Font size can't be changed** from the script; the terminal sets it. To make secondary info look smaller, use ANSI dim (`\x1b[2m`). Superscript/subscript digits (`²²`, `₁₉ₕ`) also work but look different from font to font.
 - **No SVG or images.** The status line is text and ANSI color only. Drawing is done with Unicode:
   - bars `▁▂▃▄▅▆▇█`, pies `○◔◑◕●`, shades `░▒▓█`, braille `⣀⣤⣶⣿` (tiny sparklines), box lines `─│╭╮`
