@@ -125,17 +125,22 @@ Pull requests in this repo are opened by a bot, not by you (see [`.github/workfl
 
 ### 3. Give the user the manual steps
 
-Claude cannot do these; put them in the PR description of the setup change:
+Claude cannot do these; put them in the PR description of the setup change. They are in this order on purpose: **set the permissions before installing**, or the install has nothing to grant.
 
-1. **Create a GitHub App**: GitHub → Settings → Developer settings → GitHub Apps → New GitHub App.
+1. **Create a GitHub App** at <https://github.com/settings/apps/new> (profile picture → Settings → Developer settings, at the bottom of the left sidebar → GitHub Apps → New GitHub App; this is the *account's* settings, not the repo's).
    - Name: e.g. `<user>-claude-bot` (the PR author shows as `<name>[bot]`).
    - Homepage URL: any URL, e.g. the repo's.
    - Webhook: uncheck **Active**.
-   - Repository permissions: **Contents: Read and write**, **Pull requests: Read and write** (Metadata: Read is added automatically).
+   - Repository permissions: **Contents: Read and write**, **Pull requests: Read and write** (Metadata: Read-only is added automatically).
    - Where can it be installed: **Only on this account**.
-2. **Install the App** (the App's page → Install App) on the repo, or on all repos.
-3. **Generate a private key** (the App's page → Private keys) and save the whole `.pem` content as the repo secret `CLAUDE_BOT_PRIVATE_KEY` (repo → Settings → Secrets and variables → Actions → Secrets).
-4. **Save the App's Client ID** (shown on the App's General page, starts with `Iv`) as the repo variable `CLAUDE_BOT_CLIENT_ID` (same page → Variables).
+2. **Generate a private key**: on the App's settings page (`https://github.com/settings/apps/<app-name>`), open the **Credentials** tab in the left menu → **Key pairs** → generate. A `.pem` file downloads. Ignore **Client secrets** on the same page: they are for OAuth sign-in and this setup does not use them. A key can be generated any time, also after installing.
+3. **Note the Client ID**: shown under **About** on the App's **General** tab, starts with `Iv`. Use it, not the numeric **App ID**.
+4. **Install the App** (**Install App** in the left menu) on the repo, or on all repos, and pick the repo under **Repository access**.
+5. **Save both in the repo**: repo → Settings → Secrets and variables → Actions (`https://github.com/<owner>/<repo>/settings/secrets/actions`):
+   - **Secrets** tab → New repository secret `CLAUDE_BOT_PRIVATE_KEY` = the whole `.pem` text, including the `-----BEGIN…` and `-----END…` lines.
+   - **Variables** tab → New repository variable `CLAUDE_BOT_CLIENT_ID` = the Client ID.
+
+   Use **Repository** secrets and variables, not Environment ones.
 
 The setup change itself is opened as a normal PR by the user: the bot flow starts once the workflow is on the default branch and the App is configured. (A push to a `claude/**` branch runs the workflow file from that branch, so it may start working earlier, once the variable and secret exist.)
 
@@ -143,7 +148,22 @@ The setup change itself is opened as a normal PR by the user: the bot flow start
 
 - Push a test branch `claude/test-bot-pr` with one commit: a PR authored by `<app-name>[bot]` opens.
 - Push again to the same branch: the PR updates and no second PR opens.
-- CI checks run on that PR.
-- Delete the branch: the workflow does not run (or is skipped), and nothing fails.
+- CI checks run on that PR, triggered by `<app-name>[bot]`.
+- Close the PR and delete the branch: the workflow is skipped, and nothing fails. A cloud session's git proxy may refuse to delete remote branches (HTTP 403); then the user deletes it with **Delete branch** on the PR.
 
-If the run fails at "Mint App token", the Client ID, key, or installation is wrong. If `gh pr create` fails with "Resource not accessible by integration", the App lacks Pull requests: write or is not installed on the repo.
+After fixing a setup problem, re-run the failed job from the Actions tab (or push again); no new branch is needed.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Job skipped on every push | `CLAUDE_BOT_CLIENT_ID` is not set, or was set as an Environment variable | Add it as a **Repository** variable |
+| "Mint App token" fails with `Not Found` on `/repos/<owner>/<repo>/installation` (404) | The key and Client ID are fine, but the App is not installed on this repo | Install the App, or add the repo under its Repository access |
+| The installation page says **No permissions** and **No repositories**, with no way to pick a repo | The App was installed before it had any repository permissions | App settings → **Permissions & events** → set Contents and Pull requests to Read and write → Save; then on the installation page (`https://github.com/settings/installations` → Configure) **accept** the new permissions and pick the repo |
+| "Mint App token" fails with a key or JWT error | Wrong or partly pasted key, or the App ID was used instead of the Client ID | Paste the whole `.pem` again; check the variable holds the `Iv…` Client ID |
+| `gh pr create` fails with "Resource not accessible by integration" | The App lacks Pull requests: write, or the new permission was not accepted | Set it and accept it on the installation page, as above |
+
+## What changes, and what does not
+
+- **The PR author is the bot**, so the user can approve and merge Claude's PRs themselves (GitHub does not let anyone approve their own PR).
+- **The push is still the user's.** A cloud session pushes with the user's GitHub credentials, so the workflow runs and the branch push show the user as the actor. Commit authorship is separate: it comes from the session's git config (in Claude Code cloud sessions, `Claude <noreply@anthropic.com>`), not from the App.
