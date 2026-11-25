@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="0" fill="#F5F0E8"/><g transform="translate(256 256) scale(1.12) translate(-256 -230)">
+<line x1="256" y1="122" x2="256" y2="102" stroke="#1F1E1D" stroke-width="16" stroke-linecap="round"/>
+<line x1="256.0" y1="60.0" x2="256.0" y2="32.0" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="260.2" y1="61.8" x2="274.8" y2="47.2" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="262.0" y1="66.0" x2="290.0" y2="66.0" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="260.2" y1="70.2" x2="274.8" y2="84.8" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="256.0" y1="72.0" x2="256.0" y2="100.0" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="251.8" y1="70.2" x2="237.2" y2="84.8" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="250.0" y1="66.0" x2="222.0" y2="66.0" stroke="#D97757" stroke-width="12" stroke-linecap="round"/><line x1="251.8" y1="61.8" x2="237.2" y2="47.2" stroke="#D97757" stroke-width="12" stroke-linecap="round"/>
+<ellipse cx="96" cy="276" rx="26" ry="38" fill="#D97757"/><ellipse cx="416" cy="276" rx="26" ry="38" fill="#D97757"/>
+<rect x="100" y="116" width="312" height="312" rx="140" fill="#D97757"/>
+<rect x="138" y="190" width="236" height="196" rx="84" fill="#1F1E1D"/>
+<ellipse cx="204" cy="262" rx="27" ry="33" fill="#D97757"/><ellipse cx="308" cy="262" rx="27" ry="33" fill="#D97757"/>
+<circle cx="204" cy="264" r="14" fill="#1F1E1D"/><circle cx="308" cy="264" r="14" fill="#1F1E1D"/>
+<circle cx="204" cy="256" r="5" fill="#F5F0E8"/><circle cx="308" cy="256" r="5" fill="#F5F0E8"/>
+<path d="M176 216 Q204 202 232 214" stroke="#D97757" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M280 214 Q308 202 336 216" stroke="#D97757" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M218 326 Q256 352 294 326" stroke="#F5F0E8" stroke-width="13" fill="none" stroke-linecap="round"/></g></svg>
