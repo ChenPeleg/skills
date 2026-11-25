@@ -147,3 +147,4 @@ The setup change itself is opened as a normal PR by the user: the bot flow start
 - Delete the branch: the workflow does not run (or is skipped), and nothing fails.
 
 If the run fails at "Mint App token", the Client ID, key, or installation is wrong. If `gh pr create` fails with "Resource not accessible by integration", the App lacks Pull requests: write or is not installed on the repo.
+
