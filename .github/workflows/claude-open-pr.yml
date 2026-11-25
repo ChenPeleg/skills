@@ -7,6 +7,8 @@ name: Open Claude PR
 # Setup (once per repo):
 #   - repo variable CLAUDE_BOT_CLIENT_ID   = the GitHub App's Client ID
 #   - repo secret   CLAUDE_BOT_PRIVATE_KEY = a private key (.pem) of that App
+#   - optional repo variable CLAUDE_BOT_REVIEWERS = comma-separated logins to
+#     request review from (default: whoever pushed the branch)
 # The App needs repository permissions Contents and Pull requests (read &
 # write; the token below asks only for what it uses) and must be installed on
 # this repo. Until the variable is set, the job is skipped.
@@ -49,6 +51,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
           BASE: ${{ github.event.repository.default_branch }}
+          # Comma-separated logins; defaults to whoever pushed the branch.
+          REVIEWERS: ${{ vars.CLAUDE_BOT_REVIEWERS || github.actor }}
         run: |
           set -euo pipefail
 
@@ -65,4 +69,16 @@ jobs:
           fi
 
           # --fill-first: title and body come from the branch's first commit.
-          gh pr create --head "$BRANCH" --base "$BASE" --fill-first
+          url=$(gh pr create --head "$BRANCH" --base "$BASE" --fill-first)
+          echo "Opened $url"
+
+          # Request review. A failure here only warns: the PR is already open.
+          IFS=',' read -ra reviewers <<< "$REVIEWERS"
+          for r in "${reviewers[@]}"; do
+            r=$(echo "$r" | xargs)
+            case "$r" in ""|*"[bot]") continue ;; esac
+            gh api --silent "repos/$GH_REPO/pulls/${url##*/}/requested_reviewers" \
+              -f "reviewers[]=$r" \
+              && echo "Requested review from $r" \
+              || echo "::warning::Could not request review from $r"
+          done

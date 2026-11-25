@@ -38,6 +38,8 @@ name: Open Claude PR
 # Setup (once per repo):
 #   - repo variable CLAUDE_BOT_CLIENT_ID   = the GitHub App's Client ID
 #   - repo secret   CLAUDE_BOT_PRIVATE_KEY = a private key (.pem) of that App
+#   - optional repo variable CLAUDE_BOT_REVIEWERS = comma-separated logins to
+#     request review from (default: whoever pushed the branch)
 # The App needs repository permissions Contents and Pull requests (read &
 # write; the token below asks only for what it uses) and must be installed on
 # this repo. Until the variable is set, the job is skipped.
@@ -80,6 +82,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
           BASE: ${{ github.event.repository.default_branch }}
+          # Comma-separated logins; defaults to whoever pushed the branch.
+          REVIEWERS: ${{ vars.CLAUDE_BOT_REVIEWERS || github.actor }}
         run: |
           set -euo pipefail
 
@@ -96,7 +100,19 @@ jobs:
           fi
 
           # --fill-first: title and body come from the branch's first commit.
-          gh pr create --head "$BRANCH" --base "$BASE" --fill-first
+          url=$(gh pr create --head "$BRANCH" --base "$BASE" --fill-first)
+          echo "Opened $url"
+
+          # Request review. A failure here only warns: the PR is already open.
+          IFS=',' read -ra reviewers <<< "$REVIEWERS"
+          for r in "${reviewers[@]}"; do
+            r=$(echo "$r" | xargs)
+            case "$r" in ""|*"[bot]") continue ;; esac
+            gh api --silent "repos/$GH_REPO/pulls/${url##*/}/requested_reviewers" \
+              -f "reviewers[]=$r" \
+              && echo "Requested review from $r" \
+              || echo "::warning::Could not request review from $r"
+          done
 ```
 
 Before committing, check that these are still the latest major versions and input names: `actions/create-github-app-token` (v3 uses `client-id`; `app-id` is deprecated) and `actions/checkout`.
@@ -107,6 +123,7 @@ Notes on the design:
 - The job's own `GITHUB_TOKEN` has only `contents: read` (for checkout); the App token carries the PR rights and is narrowed to `contents: read` + `pull-requests: write`.
 - `--fill-first` takes the title and body from the branch's first commit. Plain `--fill` would use the branch name as the title once the branch has more than one commit.
 - `concurrency` per branch stops two quick pushes from opening duplicate PRs.
+- After opening the PR, the workflow requests review from `CLAUDE_BOT_REVIEWERS` (an optional repo variable, comma-separated logins), or else from whoever pushed the branch: for a cloud session, that is the user. This works because the PR's author is the bot; GitHub never lets a PR's author be its reviewer. Bot logins are skipped, and a failed request only warns. Review is requested once, when the PR opens; later pushes don't re-request it.
 
 ### 2. Add a "Git workflow" section to `CLAUDE.md`
 
@@ -161,9 +178,10 @@ After fixing a setup problem, re-run the failed job from the Actions tab (or pus
 | "Mint App token" fails with `Not Found` on `/repos/<owner>/<repo>/installation` (404) | The key and Client ID are fine, but the App is not installed on this repo | Install the App, or add the repo under its Repository access |
 | The installation page says **No permissions** and **No repositories**, with no way to pick a repo | The App was installed before it had any repository permissions | App settings → **Permissions & events** → set Contents and Pull requests to Read and write → Save; then on the installation page (`https://github.com/settings/installations` → Configure) **accept** the new permissions and pick the repo |
 | "Mint App token" fails with a key or JWT error | Wrong or partly pasted key, or the App ID was used instead of the Client ID | Paste the whole `.pem` again; check the variable holds the `Iv…` Client ID |
+| Warning "Could not request review from …" | The login is wrong, or that person has no access to the repo | Fix `CLAUDE_BOT_REVIEWERS`; reviewers must be collaborators |
 | `gh pr create` fails with "Resource not accessible by integration" | The App lacks Pull requests: write, or the new permission was not accepted | Set it and accept it on the installation page, as above |
 
 ## What changes, and what does not
 
-- **The PR author is the bot**, so the user can approve and merge Claude's PRs themselves (GitHub does not let anyone approve their own PR).
+- **The PR author is the bot**, so the user is requested as a reviewer and can approve and merge Claude's PRs themselves (GitHub does not let anyone approve their own PR).
 - **The push is still the user's.** A cloud session pushes with the user's GitHub credentials, so the workflow runs and the branch push show the user as the actor. Commit authorship is separate: it comes from the session's git config (in Claude Code cloud sessions, `Claude <noreply@anthropic.com>`), not from the App.
