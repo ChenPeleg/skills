@@ -26,7 +26,33 @@ When `CLAUDE.md` has a "Git workflow" section like the one below, or `.github/wo
 
 ### 1. Add the workflow
 
-Create `.github/workflows/claude-open-pr.yml`:
+**If the user already has the bot in another repo** (e.g. `ChenPeleg/skills`, whose workflow is also a reusable one), call it instead of copying it. Create `.github/workflows/claude-open-pr.yml`:
+
+```yaml
+name: Open Claude PR
+
+# Opens a PR for each pushed claude/** branch, authored by the Claude bot App.
+# The logic lives in ChenPeleg/skills; see that file for the setup steps.
+on:
+  push:
+    branches: ["claude/**"]
+
+jobs:
+  open-pr:
+    if: ${{ vars.CLAUDE_BOT_CLIENT_ID != '' }}
+    permissions:
+      contents: read
+    uses: ChenPeleg/skills/.github/workflows/claude-open-pr.yml@main
+    with:
+      client-id: ${{ vars.CLAUDE_BOT_CLIENT_ID }}
+      reviewers: ${{ vars.CLAUDE_BOT_REVIEWERS }}
+    secrets:
+      private-key: ${{ secrets.CLAUDE_BOT_PRIVATE_KEY }}
+```
+
+The called workflow runs with the caller's `github` context (its repo, branch and push event), so it checks out and opens the PR in the calling repo. The repo holding the reusable workflow must be public, or allow access from the caller's repos (its Settings → Actions → General → Access). The calling repo still needs the App installed and its own variable and secret (step 3); skip creating the App and only do the install and step 5.
+
+**Otherwise**, copy the whole workflow. Create `.github/workflows/claude-open-pr.yml`:
 
 ```yaml
 name: Open Claude PR
@@ -35,14 +61,31 @@ name: Open Claude PR
 # for it, authored by a GitHub App bot instead of the person who owns the
 # session. Later pushes to the same branch only update the open PR.
 #
-# Setup (once per repo):
+# It runs here on push, and other repos call it as a reusable workflow:
+#
+#   on:
+#     push:
+#       branches: ["claude/**"]
+#   jobs:
+#     open-pr:
+#       if: ${{ vars.CLAUDE_BOT_CLIENT_ID != '' }}
+#       permissions:
+#         contents: read
+#       uses: ChenPeleg/skills/.github/workflows/claude-open-pr.yml@main
+#       with:
+#         client-id: ${{ vars.CLAUDE_BOT_CLIENT_ID }}
+#         reviewers: ${{ vars.CLAUDE_BOT_REVIEWERS }}
+#       secrets:
+#         private-key: ${{ secrets.CLAUDE_BOT_PRIVATE_KEY }}
+#
+# Setup (once per repo, here or in a calling repo):
 #   - repo variable CLAUDE_BOT_CLIENT_ID   = the GitHub App's Client ID
 #   - repo secret   CLAUDE_BOT_PRIVATE_KEY = a private key (.pem) of that App
 #   - optional repo variable CLAUDE_BOT_REVIEWERS = comma-separated logins to
 #     request review from (default: whoever pushed the branch)
 # The App needs repository permissions Contents and Pull requests (read &
 # write; the token below asks only for what it uses) and must be installed on
-# this repo. Until the variable is set, the job is skipped.
+# the repo. Until the variable is set, the job is skipped.
 #
 # PRs opened with an App token (unlike GITHUB_TOKEN) trigger other workflows,
 # so CI runs on them as usual.
@@ -50,15 +93,30 @@ name: Open Claude PR
 on:
   push:
     branches: ["claude/**"]
-
-concurrency:
-  group: claude-open-pr-${{ github.ref }}
-  cancel-in-progress: false
+  workflow_call:
+    inputs:
+      client-id:
+        description: The GitHub App's Client ID (Iv...)
+        type: string
+        required: true
+      reviewers:
+        description: Comma-separated logins to request review from; defaults to whoever pushed
+        type: string
+        required: false
+        default: ""
+    secrets:
+      private-key:
+        description: A private key (.pem) of the GitHub App
+        required: true
 
 jobs:
   open-pr:
-    if: ${{ !github.event.deleted && vars.CLAUDE_BOT_CLIENT_ID != '' }}
+    # In a called run, github.* is the caller's push event and repo.
+    if: ${{ !github.event.deleted && (inputs.client-id || vars.CLAUDE_BOT_CLIENT_ID) != '' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: claude-open-pr-${{ github.repository }}-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: read
     steps:
@@ -66,8 +124,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.CLAUDE_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.CLAUDE_BOT_PRIVATE_KEY }}
+          client-id: ${{ inputs.client-id || vars.CLAUDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.private-key || secrets.CLAUDE_BOT_PRIVATE_KEY }}
           permission-contents: read
           permission-pull-requests: write
 
@@ -83,7 +141,7 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           BASE: ${{ github.event.repository.default_branch }}
           # Comma-separated logins; defaults to whoever pushed the branch.
-          REVIEWERS: ${{ vars.CLAUDE_BOT_REVIEWERS || github.actor }}
+          REVIEWERS: ${{ inputs.reviewers || vars.CLAUDE_BOT_REVIEWERS || github.actor }}
         run: |
           set -euo pipefail
 
