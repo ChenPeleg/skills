@@ -1,7 +1,7 @@
 {
   "name": "chen-skills",
-  "description": "A small, hand-picked collection of agent skills: lean status line, concatenated component tree, where to put skills.",
-  "version": "1.0.0",
+  "description": "A small, hand-picked collection of agent skills: lean status line, concatenated component tree, where to put skills, Claude PRs opened by a bot.",
+  "version": "1.1.0",
   "author": { "name": "Chen Peleg" },
   "repository": "https://github.com/ChenPeleg/skills",
   "license": "MIT"
