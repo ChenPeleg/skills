@@ -8,6 +8,7 @@ Each skill lives in its own folder under [`skills/`](skills) as a `SKILL.md` fil
 
 | Skill | What it does |
 | --- | --- |
+| [claude-bot-prs](skills/claude-bot-prs/SKILL.md) | Has Claude Code sessions only push `claude/<topic>` branches, and a workflow open the PR as a GitHub App bot, so Claude's PRs are not authored by your own account. |
 | [concatenated-component-tree](skills/concatenated-component-tree/SKILL.md) | Structures a complex feature's components as a flat folder where each file name is its parent's name plus one segment, so the file list reads as the component tree. |
 | [claude-code-lean-statusline](skills/claude-code-lean-statusline/SKILL.md) | A lean, one-line Claude Code status line with pie icons for usage, plus a bundled Nerd Font and Windows setup steps. |
 | [where-to-put-skills](skills/where-to-put-skills/SKILL.md) | Sets up one shared place for a repo's agent skills (`.agents/skills/`), listed in `AGENTS.md`, with pointer files for Claude Code and a line for Copilot, so every agent reads the same files. |

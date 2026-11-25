@@ -1,0 +1,68 @@
+name: Open Claude PR
+
+# When a Claude Code session pushes a `claude/**` branch, open a pull request
+# for it, authored by a GitHub App bot instead of the person who owns the
+# session. Later pushes to the same branch only update the open PR.
+#
+# Setup (once per repo):
+#   - repo variable CLAUDE_BOT_CLIENT_ID   = the GitHub App's Client ID
+#   - repo secret   CLAUDE_BOT_PRIVATE_KEY = a private key (.pem) of that App
+# The App needs repository permissions Contents and Pull requests (read &
+# write; the token below asks only for what it uses) and must be installed on
+# this repo. Until the variable is set, the job is skipped.
+#
+# PRs opened with an App token (unlike GITHUB_TOKEN) trigger other workflows,
+# so CI runs on them as usual.
+
+on:
+  push:
+    branches: ["claude/**"]
+
+concurrency:
+  group: claude-open-pr-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  open-pr:
+    if: ${{ !github.event.deleted && vars.CLAUDE_BOT_CLIENT_ID != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Mint App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.CLAUDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.CLAUDE_BOT_PRIVATE_KEY }}
+          permission-contents: read
+          permission-pull-requests: write
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Open PR if none is open
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          open=$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "$open" -gt 0 ]; then
+            echo "An open PR already exists for $BRANCH; the push updated it."
+            exit 0
+          fi
+
+          ahead=$(git rev-list --count "origin/$BASE..HEAD")
+          if [ "$ahead" -eq 0 ]; then
+            echo "$BRANCH has no commits ahead of $BASE; nothing to open."
+            exit 0
+          fi
+
+          # --fill-first: title and body come from the branch's first commit.
+          gh pr create --head "$BRANCH" --base "$BASE" --fill-first
