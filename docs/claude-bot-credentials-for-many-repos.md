@@ -46,6 +46,35 @@ Running it again is safe: it overwrites the same values.
 - **Add the workflow file.** Each repo still needs its own `.github/workflows/claude-open-pr.yml` that calls the reusable one; see [claude-bot-prs](../skills/claude-bot-prs/SKILL.md).
 - **Set reviewers.** `CLAUDE_BOT_REVIEWERS` is optional; without it, the PR requests a review from the person who pushed. To set it, add another `gh variable set CLAUDE_BOT_REVIEWERS -R "$OWNER/$r" --body "<user>"` step.
 
+## Start the setup PRs
+
+Runs that happened before the settings existed were skipped, so nothing opens the setup PRs yet. Something has to start a new run. Re-running the last run on each repo's setup branch picks up the new variable:
+
+```bash
+BRANCH=claude/claude-bot-prs
+
+for r in repo-one repo-two repo-three; do
+  id=$(gh run list -R "$OWNER/$r" --branch "$BRANCH" -L1 --json databaseId -q '.[0].databaseId')
+  if [ -z "$id" ]; then echo "NO RUN  $r"; continue; fi
+  gh run rerun -R "$OWNER/$r" "$id" && echo "rerun   $r ($id)" || echo "FAILED  $r ($id)"
+done
+```
+
+When the runs finish, check which repos got a PR:
+
+```bash
+for r in repo-one repo-two repo-three; do
+  pr=$(gh pr list -R "$OWNER/$r" --head "$BRANCH" --state all -L1 --json url -q '.[0].url')
+  [ -n "$pr" ] && echo "PR      $r  $pr" || echo "NO PR   $r"
+done
+```
+
+For any repo marked `NO RUN`, `FAILED` or `NO PR`, push a small commit to its setup branch. The push starts a fresh run.
+
+My own copies are in `local/rerun` and `local/check-prs` (gitignored).
+
+After you merge a repo's setup PR, Claude sessions in that repo follow its new `CLAUDE.md`: they push a `claude/…` branch and leave the PR to the bot.
+
 ## After running
 
 Once every repo has the key, move the `.pem` out of `~/Downloads` or delete it. You can always generate a new one from the App's settings.
